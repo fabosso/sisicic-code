@@ -13,6 +13,7 @@
 #define DEVICE_ID 10009 			// Identificador del nodo.
 #define LORA_TIMEOUT 60				// Tiempo entre cada mensaje LoRa.
 #define LORA_SYNC_WORD 0x34			// Palabra de sincronización LoRa.
+// #define LORA_STRING_PRUEBAS String("<10009>current=0.07&voltage=221.33&flame=0&temperature=21.32&raindrops=0&gas=132.88&capacity=150")
 
 #define MAX_DISTANCE 50         	// Distancia al fondo del tanque [F].
 #define MIN_DISTANCE 5          	// Distancia al borde del tanque [B].

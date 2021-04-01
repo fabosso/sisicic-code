@@ -69,8 +69,8 @@ int count = 0;
 #include "LoRa_helpers.h"       // Biblioteca propia.
 
 /**
-    setup() inicializa el puerto serial, setea el pinout e inicializa al SX1278.
-    Esta función se invoca una única vez en el programa.
+    setup() inicializa el puerto serial, setea el pinout e inicializa 
+    los sensores y el SX1278. Esta función se invoca una única vez en el programa.
 */
 void setup() {
     D Serial.begin(SERIAL_BPS);
@@ -92,7 +92,12 @@ void loop() {
         stopRefreshingAllSensors();
 
         // Compone la carga útil de LoRa.
-        LoRaPayload = composeLoRaPayload(currentStates);
+        #ifdef LORA_STRING_PRUEBAS
+          LoRaPayload = LORA_STRING_PRUEBAS;
+        #else
+          LoRaPayload = composeLoRaPayload(currentStates);
+        #endif
+        
         D Serial.print("Payload LoRa encolado!: ");
         D Serial.println(LoRaPayload);
 
