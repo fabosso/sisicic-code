@@ -35,7 +35,7 @@ void stopRefreshingAllSensors() {
 */
 void refreshCurrent() {
     currentStates[0] = String(eMon.Irms);
-    D Serial.println("Nueva corriente: " + currentStates[0]);
+    // D Serial.println("Nueva corriente: " + currentStates[0]);
     refreshRequested[0] = false;
 }
 
@@ -46,7 +46,7 @@ void refreshCurrent() {
 
 void refreshVoltage() {
     currentStates[1] = String(eMon.Vrms);
-    D Serial.println("Nueva tension: " + currentStates[1]);
+    // D Serial.println("Nueva tension: " + currentStates[1]);
     refreshRequested[1] = false;
 }
 
@@ -61,7 +61,7 @@ void refreshFlame() {
     } else {
         currentStates[2] = "0";
     }
-    D Serial.println("Nueva flama: " + currentStates[2]);
+    // D Serial.println("Nueva flama: " + currentStates[2]);
     refreshRequested[2] = false;
 }
 
@@ -73,7 +73,7 @@ void refreshFlame() {
 void refreshTemperature() {
     sensorDS18B20.requestTemperatures();
     currentStates[3] = String(sensorDS18B20.getTempCByIndex(0));
-    D Serial.println("Nueva temperatura: " + currentStates[3]);
+    // D Serial.println("Nueva temperatura: " + currentStates[3]);
     refreshRequested[3] = false;
 }
 
@@ -87,14 +87,14 @@ void refreshRaindrops() {
     } else {
         currentStates[4] = "0";
     }
-    D Serial.println("Nueva lluvia: " + currentStates[4]);
+    // D Serial.println("Nueva lluvia: " + currentStates[4]);
     refreshRequested[4] = false;
 }
 
 float dist = 0.0;
 float height = 0.0;
 /**
-    refreshGAs() se encarga de refrescar el estado del nivel de combustible
+    refreshGas() se encarga de refrescar el estado del nivel de combustible
     Luego de hacerlo, baja el flag correspondiente en refreshRequested.
 */
 void refreshGas() {
@@ -106,6 +106,7 @@ void refreshGas() {
         height = MAX_DISTANCE - dist;
         currentStates[5] = String(PI_TIMES_R_SQUARED * height);
     }
+    D Serial.println(String(dist) + " cm");
     D Serial.println("Nueva nafta: " + currentStates[5]);
     refreshRequested[5] = false;
 }

@@ -24,6 +24,13 @@ void LoRaInitialize() {
     LoRa.setSyncWord(LORA_SYNC_WORD);
 }
 
+#define CORRIENTE_MOCK "0.26"
+// #define TENSION_MOCK "223.11"
+// #define FLAME_MOCK "0"
+// #define TEMPERATURA_MOCK "23.11"
+// #define LLUVIA_MOCK "0"
+#define NAFTA_MOCK "128.22"
+
 /**
     composeLoRaPayload(states) se encarga de crear la string de carga útil de LoRa,
     a partir de los estados actuales de los sensores.
@@ -45,36 +52,58 @@ String composeLoRaPayload(String measures[]) {
 
     payload += "current";
     payload += "=";
-    payload += measures[0];
+    #ifndef CORRIENTE_MOCK
+      payload += measures[0];
+    #else
+      payload += CORRIENTE_MOCK;
+    #endif
 
     payload += "&";
     payload += "voltage";
     payload += "=";
-    payload += measures[1];
+    #ifndef TENSION_MOCK
+      payload += measures[1];
+    #else
+      payload += TENSION_MOCK;
+    #endif
 
     payload += "&";
     payload += "flame";
     payload += "=";
-    payload += measures[2];
+    #ifndef FUEGO_MOCK
+      payload += measures[2];
+    #else
+      payload += FUEGO_MOCK;
+    #endif
 
     payload += "&";
     payload += "temperature";
     payload += "=";
-    payload += measures[3];
+    #ifndef TEMPERATURA_MOCK
+      payload += measures[3];
+    #else
+      payload += TEMPERATURA_MOCK;
+    #endif
 
     payload += "&";
     payload += "raindrops";
     payload += "=";
-    payload += measures[4];
+    #ifndef LLUVIA_MOCK
+      payload += measures[4];
+    #else
+      payload += LLUVIA_MOCK;
+    #endif;
 
     payload += "&";
     payload += "gas";
     payload += "=";
-    payload += measures[5];
+    #ifndef NAFTA_MOCK
+      payload += measures[5];
+    #else
+      payload += NAFTA_MOCK;
+    #endif
 
-    payload += "&";
-    payload += "capacity";
-    payload += "=";
+    payload += "/";
     payload += String(CAPACIDAD_COMBUSTIBLE);
     
     return payload;

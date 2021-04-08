@@ -92,11 +92,7 @@ void loop() {
         stopRefreshingAllSensors();
 
         // Compone la carga útil de LoRa.
-        #ifdef LORA_STRING_PRUEBAS
-          LoRaPayload = LORA_STRING_PRUEBAS;
-        #else
-          LoRaPayload = composeLoRaPayload(currentStates);
-        #endif
+        LoRaPayload = composeLoRaPayload(currentStates);
         
         D Serial.print("Payload LoRa encolado!: ");
         D Serial.println(LoRaPayload);
