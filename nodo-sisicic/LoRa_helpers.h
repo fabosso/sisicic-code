@@ -6,6 +6,29 @@
     @version 1.2 29/03/2021
 */
 
+void onReceive(int packetSize) {
+    Serial.println("Entering recieve mode");
+    if (packetSize == 0)
+        return; // if there's no packet, return
+
+    String incoming = ""; // payload of packet
+
+    while (LoRa.available()) {         // can't use readString() in callback, so
+        incoming += (char)LoRa.read(); // add bytes one by one
+    }
+
+    int delimiter = incoming.indexOf(">");
+    int receiver = incoming.substring(1, delimiter).toInt();
+    Serial.println("Receiver: " + String(receiver));
+    if (receiver == DEVICE_ID) {
+        Serial.println("Wait, that's me!");
+        String payload = incoming.substring(delimiter + 1);
+        Serial.println("I should do this: " + payload);
+    } else {
+        Serial.println("Whatever...");
+    }
+}
+
 /**
     LoRaInitialize() inicializa el módulo SX1278 con: 
         - la frecuencia y la palabra de sincronización indicados en constants.h
@@ -13,23 +36,20 @@
     Si por algún motivo fallara, "cuelga" al programa.
 */
 void LoRaInitialize() {
-    D Serial.println("LoRa Sender non-blocking");
-
     LoRa.setPins(NSS_PIN, RESET_PIN, DIO0_PIN);
 
     if (!LoRa.begin(LORA_FREQ)) {
         Serial.println("Starting LoRa failed!");
+
         while (1);
     }
     LoRa.setSyncWord(LORA_SYNC_WORD);
-}
 
-#define CORRIENTE_MOCK "0.26"
-// #define TENSION_MOCK "223.11"
-// #define FLAME_MOCK "0"
-// #define TEMPERATURA_MOCK "23.11"
-// #define LLUVIA_MOCK "0"
-#define NAFTA_MOCK "128.22"
+    LoRa.onReceive(onReceive);
+    LoRa.receive();
+    
+    D Serial.println("LoRa initialized OK.");
+}
 
 /**
     composeLoRaPayload(states) se encarga de crear la string de carga útil de LoRa,
@@ -71,36 +91,36 @@ String composeLoRaPayload(String measures[]) {
     payload += "flame";
     payload += "=";
     #ifndef FUEGO_MOCK
-      payload += measures[2];
+        payload += measures[2];
     #else
-      payload += FUEGO_MOCK;
+        payload += FUEGO_MOCK;
     #endif
 
     payload += "&";
     payload += "temperature";
     payload += "=";
     #ifndef TEMPERATURA_MOCK
-      payload += measures[3];
+        payload += measures[3];
     #else
-      payload += TEMPERATURA_MOCK;
+        payload += TEMPERATURA_MOCK;
     #endif
 
     payload += "&";
     payload += "raindrops";
     payload += "=";
     #ifndef LLUVIA_MOCK
-      payload += measures[4];
+        payload += measures[4];
     #else
-      payload += LLUVIA_MOCK;
+        payload += LLUVIA_MOCK;
     #endif;
 
     payload += "&";
     payload += "gas";
     payload += "=";
     #ifndef NAFTA_MOCK
-      payload += measures[5];
+        payload += measures[5];
     #else
-      payload += NAFTA_MOCK;
+        payload += NAFTA_MOCK;
     #endif
 
     payload += "/";
