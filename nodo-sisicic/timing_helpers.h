@@ -1,5 +1,5 @@
 /**
-	  Header que contiene funcionalidades relacionadas al timing.
+      Header que contiene funcionalidades relacionadas al timing.
     @file timing_helpers.h
     @author Franco Abosso
     @author Julio Donadello
@@ -11,22 +11,22 @@
     si pasaron determinada cantidad de milisegundos desde la última vez que ingresó.
     Además, tiene un slot que permite escalar esta tarea.
     Por ejemplo:
-    	currentMillis = 32678
-    	interval = 1000
-    	slot = 1
-	Devuelve:
-		false (mientras currentMillis esté en el rango 32678 - 33677)
-		true (cuando currentMillis sea 33678 o más)
-	Antes de devolver true, se encarga de actualizar previousMillis del slot correspondiente.
-	La condición booleana debería utilizarse dentro de un condicional para que esta función tenga sentido.
-	Por ejemplo:
-		if(runEvery(sec2ms(2), 1)) {
-			Serial.println("Hola");
-		}
-	Imprime por pantalla "Hola" cada 2 segundos.
-	@param interval Intervalo a esperar entre tarea y tarea.
-	@param slot Slot de timing seleccionado (permite múltiples "timers").
-	@return true o false, dependiendo de si ya es momento de repetir la tarea.
+        currentMillis = 32678
+        interval = 1000
+        slot = 1
+    Devuelve:
+        false (mientras currentMillis esté en el rango 32678 - 33677)
+        true (cuando currentMillis sea 33678 o más)
+    Antes de devolver true, se encarga de actualizar previousMillis del slot correspondiente.
+    La condición booleana debería utilizarse dentro de un condicional para que esta función tenga sentido.
+    Por ejemplo, el siguiente código:
+        if(runEvery(sec2ms(2), 1)) {
+            Serial.println("Hola");
+        }
+    Imprime por pantalla "Hola" cada 2 segundos.
+    @param interval Intervalo a esperar entre tarea y tarea.
+    @param slot Slot de timing seleccionado (permite múltiples "timers").
+    @return true o false, dependiendo de si ya es momento de repetir la tarea.
 */
 boolean runEvery(unsigned long interval, int slot) {
     static unsigned long previousMillis[TIMING_SLOTS] = {0};
