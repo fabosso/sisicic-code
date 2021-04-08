@@ -1,5 +1,5 @@
 /**
-	  Header que contiene constantes relevantes para el accionar del programa principal.
+    Header que contiene constantes relevantes para el accionar del programa principal.
     @file constants.h
     @author Franco Abosso
     @author Julio Donadello
@@ -24,3 +24,10 @@
 #define TOTAL_PITIDOS 3				// Total de pitidos por alarma.
 
 #define TIMING_SLOTS 3 				// Cantidad de slots necesarios de timing (ver timing_helpers.h)
+
+#define CORRIENTE_MOCK "0.26"       // Valores de sensado falsos.
+// #define TENSION_MOCK "223.11"    // Valores de sensado falsos.
+// #define FLAME_MOCK "0"           // Valores de sensado falsos.
+// #define TEMPERATURA_MOCK "23.11" // Valores de sensado falsos.
+// #define LLUVIA_MOCK "0"          // Valores de sensado falsos.
+#define NAFTA_MOCK "128.22"         // Valores de sensado falsos.
