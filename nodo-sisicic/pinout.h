@@ -52,12 +52,11 @@ NewPing sonar(COMBUSTIBLE_TRIG_PIN, COMBUSTIBLE_ECHO_PIN, 300);
 */
 void setupPinout() {
     pinMode(BUZZER_PIN, OUTPUT);
-    digitalWrite(BUZZER_PIN, BUZZER_INACTIVO);
     pinMode(TEMPERATURA_PIN, INPUT);
     pinMode(LLUVIA_PIN, INPUT);
     pinMode(COMBUSTIBLE_ECHO_PIN, INPUT);
     pinMode(COMBUSTIBLE_TRIG_PIN, OUTPUT);  
     sensorDS18B20.begin(); 
     eMon.voltage(TENSION_PIN, 226.0, 1.7);
-    eMon.current(CORRIENTE_PIN, 58.8);    
+    eMon.current(CORRIENTE_PIN, 58.8);      
 }

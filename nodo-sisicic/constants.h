@@ -6,7 +6,7 @@
     @version 1.0 29/03/2021
 */
 
-#define DEBUG						// Imprime mensajes por el puerto serial.
+#define DEBUG_LEVEL 1				// Imprime mensajes por el puerto serial.
 #define SERIAL_BPS 9600				// Bitrate de las comunicaciones por puerto serial.
 
 #define LORA_FREQ 433175000 		// Frecuencia de la transmisión LoRa (en Hz).

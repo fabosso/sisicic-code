@@ -7,9 +7,12 @@
 */
 
 void onReceive(int packetSize) {
-    Serial.println("Entering recieve mode");
-    if (packetSize == 0)
+    #if DEBUG_LEVEL >= 2
+        Serial.println("Entering recieve mode");
+    #endif
+    if (packetSize == 0) {
         return; // if there's no packet, return
+    }
 
     String incoming = ""; // payload of packet
 
@@ -19,13 +22,19 @@ void onReceive(int packetSize) {
 
     int delimiter = incoming.indexOf(">");
     int receiver = incoming.substring(1, delimiter).toInt();
-    Serial.println("Receiver: " + String(receiver));
+    #if DEBUG_LEVEL >= 1
+        Serial.println("Receiver: " + String(receiver));
+    #endif
     if (receiver == DEVICE_ID) {
-        Serial.println("Wait, that's me!");
         String payload = incoming.substring(delimiter + 1);
-        Serial.println("I should do this: " + payload);
+        #if DEBUG_LEVEL >= 1
+            Serial.println("Wait, that's me!");
+            Serial.println("I should do this: " + payload);
+        #endif
     } else {
-        Serial.println("Whatever...");
+        #if DEBUG_LEVEL >= 2
+            Serial.println("Whatever...");
+        #endif
     }
 }
 
@@ -40,16 +49,16 @@ void LoRaInitialize() {
 
     if (!LoRa.begin(LORA_FREQ)) {
         Serial.println("Starting LoRa failed!");
-        startAlert(200, 5);
-        
+        startAlert(200, 5);    
         while (1);
     }
     LoRa.setSyncWord(LORA_SYNC_WORD);
-
     LoRa.onReceive(onReceive);
     LoRa.receive();
     
-    D Serial.println("LoRa initialized OK.");
+    #if DEBUG_LEVEL >= 1
+        Serial.println("LoRa initialized OK.");
+    #endif
 }
 
 /**

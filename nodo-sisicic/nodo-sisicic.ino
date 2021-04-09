@@ -53,15 +53,9 @@ bool initiateAlert = true;
     LoRaPayload es una string que contiene el mensaje preformateado especialmente
     para que, posteriormente, el concentrador LoRa pueda decodificarla.
 */
-String LoRaPayload = "";
-
-/**
-    count almacena la cantidad de mensajes LoRa encolados.
-*/
-int count = 0;                 
+String LoRaPayload = "";            
 
 // Bibliotecas que agregan funcionalidades.
-#include "macro_debug.h"        // Biblioteca propia.
 #include "pinout.h"             // Biblioteca propia.
 #include "timing_helpers.h"     // Biblioteca propia.
 #include "sensors.h"            // Biblioteca propia.
@@ -73,9 +67,12 @@ int count = 0;
     los sensores y el SX1278. Esta función se invoca una única vez en el programa.
 */
 void setup() {
-    D Serial.begin(SERIAL_BPS);
+    #if DEBUG_LEVEL >= 1
+        Serial.begin(SERIAL_BPS);
+    #endif
     setupPinout();
     LoRaInitialize();
+    startAlert(133, 3);
 }
 
 /**
@@ -94,16 +91,15 @@ void loop() {
         // Compone la carga útil de LoRa.
         LoRaPayload = composeLoRaPayload(currentStates);
         
-        D Serial.print("Payload LoRa encolado!: ");
-        D Serial.println(LoRaPayload);
+        #if DEBUG_LEVEL >= 1
+            Serial.print("Payload LoRa encolado!: ");
+            Serial.println(LoRaPayload);
+        #endif
 
         // Componer y enviar paquete.
         LoRa.beginPacket();
         LoRa.print(LoRaPayload);
         LoRa.endPacket();
-
-        // Suma 1 a la variable count.
-        D count++;
 
         // Inicia la alerta preestablecida.
         startAlert(133, 3);

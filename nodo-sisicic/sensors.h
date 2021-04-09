@@ -15,7 +15,9 @@ void refreshAllSensors() {
     for(int i = 0; i < 6; i++) {
         refreshRequested[i] = true;
     }
-    D Serial.println("Refrescando sensores!");
+    #if DEBUG_LEVEL >= 2
+        Serial.println("Refrescando sensores!");
+    #endif
 }
 
 /**
@@ -26,7 +28,9 @@ void stopRefreshingAllSensors() {
     for(int i = 0; i < 6; i++) {
         refreshRequested[i] = false;
     }
-    D Serial.println("Abandonando refrescos!");
+    #if DEBUG_LEVEL >= 2
+        Serial.println("Abandonando refrescos!");
+    #endif
 }
 
 /**
@@ -35,8 +39,10 @@ void stopRefreshingAllSensors() {
 */
 void refreshCurrent() {
     currentStates[0] = String(eMon.Irms);
-    // D Serial.println("Nueva corriente: " + currentStates[0]);
     refreshRequested[0] = false;
+    #if DEBUG_LEVEL >= 3
+        Serial.println("Nueva corriente: " + currentStates[0]);
+    #endif
 }
 
 /**
@@ -46,8 +52,10 @@ void refreshCurrent() {
 
 void refreshVoltage() {
     currentStates[1] = String(eMon.Vrms);
-    // D Serial.println("Nueva tension: " + currentStates[1]);
     refreshRequested[1] = false;
+    #if DEBUG_LEVEL >= 3
+        Serial.println("Nueva tension: " + currentStates[1]);
+    #endif
 }
 
 /**
@@ -61,8 +69,10 @@ void refreshFlame() {
     } else {
         currentStates[2] = "0";
     }
-    // D Serial.println("Nueva flama: " + currentStates[2]);
     refreshRequested[2] = false;
+    #if DEBUG_LEVEL >= 3
+        Serial.println("Nueva flama: " + currentStates[2]);
+    #endif
 }
 
 
@@ -73,8 +83,10 @@ void refreshFlame() {
 void refreshTemperature() {
     sensorDS18B20.requestTemperatures();
     currentStates[3] = String(sensorDS18B20.getTempCByIndex(0));
-    // D Serial.println("Nueva temperatura: " + currentStates[3]);
     refreshRequested[3] = false;
+    #if DEBUG_LEVEL >= 3
+        Serial.println("Nueva temperatura: " + currentStates[3]);
+    #endif
 }
 
 /**
@@ -87,8 +99,10 @@ void refreshRaindrops() {
     } else {
         currentStates[4] = "0";
     }
-    // D Serial.println("Nueva lluvia: " + currentStates[4]);
     refreshRequested[4] = false;
+    #if DEBUG_LEVEL >= 3
+        Serial.println("Nueva lluvia: " + currentStates[4]);
+    #endif
 }
 
 float dist = 0.0;
@@ -106,7 +120,11 @@ void refreshGas() {
         height = MAX_DISTANCE - dist;
         currentStates[5] = String(PI_TIMES_R_SQUARED * height);
     }
-    D Serial.println(String(dist) + " cm");
-    D Serial.println("Nueva nafta: " + currentStates[5]);
     refreshRequested[5] = false;
+    
+    #if DEBUG_LEVEL >= 4
+        Serial.println(String(dist) + " cm");
+    #elif DEBUG_LEVEL >= 3  
+        Serial.println("Nueva nafta: " + currentStates[5]);
+    #endif
 }
