@@ -6,6 +6,10 @@
     @version 1.2 29/03/2021
 */
 
+/*
+    onRecieve() es la función por interrupción que se llama cuando
+    existen datos en el buffer LoRa.
+*/
 void onReceive(int packetSize) {
     #if DEBUG_LEVEL >= 2
         Serial.println("Entering recieve mode");
