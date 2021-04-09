@@ -40,7 +40,8 @@ void LoRaInitialize() {
 
     if (!LoRa.begin(LORA_FREQ)) {
         Serial.println("Starting LoRa failed!");
-
+        startAlert(200, 5);
+        
         while (1);
     }
     LoRa.setSyncWord(LORA_SYNC_WORD);
@@ -59,7 +60,7 @@ void LoRaInitialize() {
         currentStates = {"7.66", "223.11", "0"; "23.11"; "0"; "128.22"; "150"}
     Entonces, esta función devuelve:
         "<10009>current=7.66&voltage=223.11&flame=0&temperature=23.11&raindrops=0&gas=128.22&capacity=150"
-    @param measures[] Vector de trings con los valores actuales de los sensores.
+    @param measures[] Vector de Strings con los valores actuales de los sensores.
     @return La carga útil LoRa.
 */
 String composeLoRaPayload(String measures[]) {

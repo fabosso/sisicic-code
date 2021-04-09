@@ -106,9 +106,11 @@ void loop() {
         D count++;
 
         // Inicia la alerta preestablecida.
-        initiateAlert = true;
+        startAlert(133, 3);
+
+        LoRa.receive();
     } else {
-        alert();
+        callbackAlert();
         
         if(runEvery(sec2ms(2), 2)) {
             // Refresca TODOS los sensores.

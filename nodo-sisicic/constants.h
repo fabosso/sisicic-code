@@ -20,14 +20,11 @@
 #define PI_TIMES_R_SQUARED (CAPACIDAD_COMBUSTIBLE) / (MAX_DISTANCE - MIN_DISTANCE)
 #define PING_SAMPLES 5				// Cantidad de muestras ultrasónicos.
 
-#define TIEMPO_PITIDO 133			// Tiempo de cada pitido del buzzer [ms].
-#define TOTAL_PITIDOS 3				// Total de pitidos por alarma.
-
 #define TIMING_SLOTS 3 				// Cantidad de slots necesarios de timing (ver timing_helpers.h)
 
-#define CORRIENTE_MOCK "0.26"       // Valores de sensado falsos.
-// #define TENSION_MOCK "223.11"    // Valores de sensado falsos.
-// #define FLAME_MOCK "0"           // Valores de sensado falsos.
-// #define TEMPERATURA_MOCK "23.11" // Valores de sensado falsos.
-// #define LLUVIA_MOCK "0"          // Valores de sensado falsos.
-#define NAFTA_MOCK "128.22"         // Valores de sensado falsos.
+#define CORRIENTE_MOCK "0.26"       // Valor de sensado falso.
+// #define TENSION_MOCK "223.11"    // Valor de sensado falso.
+// #define FLAME_MOCK "0"           // Valor de sensado falso.
+// #define TEMPERATURA_MOCK "23.11" // Valor de sensado falso.
+// #define LLUVIA_MOCK "0"          // Valor de sensado falso.
+#define NAFTA_MOCK "128.22"         // Valor de sensado falso.
