@@ -11,6 +11,12 @@ int tiempoPitido = 133;         // Tiempo de cada pitido del buzzer [ms].
 bool resetAlert = false;        // Flag responsable de resetear pitidosRestantes.
 int pitidosRestantes = 0;       // Variable que contiene los pitidos restantes.
 
+void blockingAlert(int tiempo, int pitidos) {
+    for (int i = 0; i < pitidos * 2 + 1; i++) {
+        digitalWrite(BUZZER_PIN, !digitalRead(BUZZER_PIN));
+        delay(tiempo);
+    }
+}
 
 /**
     startAlert() se encarga de inicializar la subrutina no bloqueante
