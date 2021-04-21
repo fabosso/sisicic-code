@@ -10,6 +10,8 @@
     onRecieve() es la función por interrupción que se llama cuando
     existen datos en el buffer LoRa.
 */
+
+
 void onReceive(int packetSize) {
     #if DEBUG_LEVEL >= 2
         Serial.println("Entering recieve mode");
@@ -18,22 +20,28 @@ void onReceive(int packetSize) {
         return; // if there's no packet, return
     }
 
-    String incoming = ""; // payload of packet
+    incomingFull = ""; // payload of packet
 
     while (LoRa.available()) {         // can't use readString() in callback, so
-        incoming += (char)LoRa.read(); // add bytes one by one
+        incomingFull += (char)LoRa.read(); // add bytes one by one
     }
 
-    int delimiter = incoming.indexOf(">");
-    int receiver = incoming.substring(1, delimiter).toInt();
+
+    int delimiter = incomingFull.indexOf(greaterThanStr);
+    receiverStr = incomingFull.substring(1, delimiter);
+
+    int receiver = receiverStr.toInt();
     #if DEBUG_LEVEL >= 1
-        Serial.println("Receiver: " + String(receiver));
+        Serial.print("Receiver: ");
+        Serial.println(receiver);
     #endif
     if (receiver == DEVICE_ID) {
-        String payload = incoming.substring(delimiter + 1);
+        // incomingPayload.reserve(MAX_SIZE_INCOMING_LORA_COMMAND);
+        incomingPayload = incomingFull.substring(delimiter + 1);
         #if DEBUG_LEVEL >= 1
             Serial.println("Wait, that's me!");
-            Serial.println("I should do this: " + payload);
+            Serial.print("I should do this: ");
+            Serial.println(incomingPayload);
         #endif
     } else {
         #if DEBUG_LEVEL >= 2
@@ -53,7 +61,7 @@ void LoRaInitialize() {
 
     if (!LoRa.begin(LORA_FREQ)) {
         Serial.println("Starting LoRa failed!");
-        startAlert(200, 5);    
+        blockingAlert(2000, 10);    
         while (1);
     }
     LoRa.setSyncWord(LORA_SYNC_WORD);
@@ -76,69 +84,19 @@ void LoRaInitialize() {
     @param measures[] Vector de Strings con los valores actuales de los sensores.
     @return La carga útil LoRa.
 */
-String composeLoRaPayload(String measures[]) {
+void composeLoRaPayload(float volts[], float temps[], String& rtn) {
     // Payload LoRA = vector de bytes transmitidos en forma FIFO.
-    // | Dev ID | Corriente | Tensión | Fuego | Temperatura | Lluvia | Combustible (nivel) | Combustible (total) |
-    String payload;
-    payload += "<";
-    payload += String(DEVICE_ID);
-    payload += ">";
+    // | Dev ID |  Tensión | Temperatura |
+    rtn += "<";
+    rtn += DEVICE_ID;
+    rtn += ">";
 
-    payload += "current";
-    payload += "=";
-    #ifndef CORRIENTE_MOCK
-      payload += measures[0];
-    #else
-      payload += CORRIENTE_MOCK;
-    #endif
+    rtn += "voltage";
+    rtn += "=";
+    rtn += getAverage(volts);
 
-    payload += "&";
-    payload += "voltage";
-    payload += "=";
-    #ifndef TENSION_MOCK
-      payload += measures[1];
-    #else
-      payload += TENSION_MOCK;
-    #endif
-
-    payload += "&";
-    payload += "flame";
-    payload += "=";
-    #ifndef FUEGO_MOCK
-        payload += measures[2];
-    #else
-        payload += FUEGO_MOCK;
-    #endif
-
-    payload += "&";
-    payload += "temperature";
-    payload += "=";
-    #ifndef TEMPERATURA_MOCK
-        payload += measures[3];
-    #else
-        payload += TEMPERATURA_MOCK;
-    #endif
-
-    payload += "&";
-    payload += "raindrops";
-    payload += "=";
-    #ifndef LLUVIA_MOCK
-        payload += measures[4];
-    #else
-        payload += LLUVIA_MOCK;
-    #endif;
-
-    payload += "&";
-    payload += "gas";
-    payload += "=";
-    #ifndef NAFTA_MOCK
-        payload += measures[5];
-    #else
-        payload += NAFTA_MOCK;
-    #endif
-
-    payload += "/";
-    payload += String(CAPACIDAD_COMBUSTIBLE);
-    
-    return payload;
+    rtn += "&";
+    rtn += "temperature";
+    rtn += "=";
+    rtn += getAverage(temps);
 }

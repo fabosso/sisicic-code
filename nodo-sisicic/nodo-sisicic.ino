@@ -25,6 +25,13 @@
 // Biblioteca utilizada para calcular los valores RMS de los sensores de tensión y corriente.
 #include <EmonLib.h>            // https://learn.openenergymonitor.org/electricity-monitoring/ctac/how-to-build-an-arduino-energy-monitor
 
+#include <StringReserveCheck.h>
+
+float voltages[ARRAY_SIZE] = {0.0};
+float temperatures[ARRAY_SIZE] = {0.0};
+
+int index = 0;
+
 /**
     currentStates contiene 6 strings que representan el valor actual 
     de la medición de cada uno de los sensores. Estos tienen un orden arbitrario:
@@ -32,15 +39,16 @@
     Estos valores se refrescan cuando sea requerido, y retienen el valor anterior
     hasta entonces.
 */
-String currentStates[6] = {"0.0", "0.0", "0", "0.0", "0", "0.0"};
+
+// String currentStates[SENSORS_QTY] = {"", ""};
 
 /**
-    refreshRequest contiene 6 variables booleanas que representan la necesidad 
+    refreshRequested contiene 6 variables booleanas que representan la necesidad 
     de refrescar los valores de currentStates. Estos tienen un orden arbitrario:
     { Corriente, Tensión, Fuego, Temperatura, Lluvia, Combustible }
     Una vez refrescado, cada uno de estos booleanos vuelve a ponerse en false.
 */
-bool refreshRequested[6] = {false, false, false, false, false, false};
+bool refreshRequested[SENSORS_QTY] = {false, false};
 
 /**
     initiateAlert es un flag que, de ser evaluado a true, dispara una
@@ -53,13 +61,22 @@ bool initiateAlert = true;
     LoRaPayload es una string que contiene el mensaje preformateado especialmente
     para que, posteriormente, el concentrador LoRa pueda decodificarla.
 */
-String LoRaPayload = "";            
+String LoRaPayload;
+
+String incomingFull;
+
+String receiverStr;
+
+String incomingPayload;
+
+const String greaterThanStr = ">";
 
 // Bibliotecas que agregan funcionalidades.
 #include "pinout.h"             // Biblioteca propia.
 #include "timing_helpers.h"     // Biblioteca propia.
 #include "sensors.h"            // Biblioteca propia.
 #include "actuators.h"          // Biblioteca propia.
+#include "array_helpers.h"      // Biblioteca propia.
 #include "LoRa_helpers.h"       // Biblioteca propia.
 
 /**
@@ -67,10 +84,23 @@ String LoRaPayload = "";
     los sensores y el SX1278. Esta función se invoca una única vez en el programa.
 */
 void setup() {
+    setupPinout();
     #if DEBUG_LEVEL >= 1
         Serial.begin(SERIAL_BPS);
     #endif
-    setupPinout();
+
+    receiverStr.reserve(MAX_SIZE_DEV_ID);
+    incomingPayload.reserve(MAX_SIZE_INCOMING_LORA_COMMAND);
+    incomingFull.reserve(MAX_SIZE_INCOMING_LORA_COMMAND + MAX_SIZE_DEV_ID + 2);
+    
+    if (!LoRaPayload.reserve(MAX_SIZE_OUTCOMING_LORA_REPORT)) {
+        #if DEBUG_LEVEL >= 1
+            Serial.println("Strings out of memory!");
+        #endif
+        blockingAlert(133, 50);
+        while (1);
+    }
+    
     LoRaInitialize();
     startAlert(133, 3);
 }
@@ -89,7 +119,7 @@ void loop() {
         stopRefreshingAllSensors();
 
         // Compone la carga útil de LoRa.
-        LoRaPayload = composeLoRaPayload(currentStates);
+        composeLoRaPayload(voltages, temperatures, LoRaPayload);
         
         #if DEBUG_LEVEL >= 1
             Serial.print("Payload LoRa encolado!: ");
@@ -101,32 +131,30 @@ void loop() {
         LoRa.print(LoRaPayload);
         LoRa.endPacket();
 
+        // Pone al módulo LoRa en modo recepción.
+        LoRa.receive();
+
         // Inicia la alerta preestablecida.
         startAlert(133, 3);
 
-        LoRa.receive();
+        index = 0;
     } else {
         callbackAlert();
         
-        if(runEvery(sec2ms(2), 2)) {
+        if(runEvery(sec2ms(TIMEOUT_READ_SENSORS), 2)) {
             // Refresca TODOS los sensores.
             refreshAllSensors();
+            index++;
         }
-     
-        if (refreshRequested[0] && pitidosRestantes == 0) {
-            // Calcula el valor RMS de V e I, y refresca el estado de la corriente
-            eMon.calcVI(20,1000);
-            refreshCurrent();
+
+        if (refreshRequested[0] && !resetAlert && pitidosRestantes == 0) {
+            // #ifndef TENSION_MOCK
+                eMon.calcVI(20, 1000);
+            // #endif
+            getNewVoltage();
         }
-        if (refreshRequested[1]) 
-            refreshVoltage();
-        if (refreshRequested[2]) 
-            refreshFlame();
-        if (refreshRequested[3]) 
-            refreshTemperature();
-        if (refreshRequested[4]) 
-            refreshRaindrops();
-        if (refreshRequested[5]) 
-            refreshGas();
+        if (refreshRequested[1] && !resetAlert && pitidosRestantes == 0) {
+            getNewTemperature();
+        }
     }
 }
