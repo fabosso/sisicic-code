@@ -7,6 +7,7 @@
     @version 1.1 29/03/2021
 */
 
+/// Headers iniciales (preceden a la declaración de variables).
 
 // Header que contiene constantes relevantes al accionar de este programa.
 #include "constants.h"          // Biblioteca propia.
@@ -19,59 +20,85 @@
 #include <OneWire.h>            // https://www.pjrc.com/teensy/td_libs_OneWire.html
 #include <DallasTemperature.h>  // https://www.milesburton.com/Dallas_Temperature_Control_Library
 
-// Biblioteca utilizada para manejar al HC-SR04.
-#include <NewPing.h>            // https://bitbucket.org/teckel12/arduino-new-ping/wiki/Home
-
-// Biblioteca utilizada para calcular los valores RMS de los sensores de tensión y corriente.
+// Biblioteca necesaria para calcular los valores RMS de los sensores de tensión y corriente.
 #include <EmonLib.h>            // https://learn.openenergymonitor.org/electricity-monitoring/ctac/how-to-build-an-arduino-energy-monitor
 
-#include <StringReserveCheck.h>
+// Biblioteca necesaria para reservar espacios de memoria fijos para las Strings utilizadas.
+#include <StringReserveCheck.h> // https://www.forward.com.au/pfod/ArduinoProgramming/ArduinoStrings/index.html
 
+/// Declaración de variables globales.
+
+/**
+    voltages es un array de floats que contiene los valores de tensión medidos entre cada
+    transmisión LoRa. El tamaño del array depende del intervalo de tiempo entre cada transmisión
+    LoRa y el intervalo de tiempo entre cada medición.
+    Una vez realizada la transmisión, todos los valores de este array vuelven a ponerse en 0.
+*/
 float voltages[ARRAY_SIZE] = {0.0};
+
+/**
+    temperatures es un array de floats que contiene los valores de temperatura medidos entre cada
+    transmisión LoRa. El tamaño del array depende del intervalo de tiempo entre cada transmisión
+    LoRa y el intervalo de tiempo entre cada medición.
+    Una vez realizada la transmisión, todos los valores de este array vuelven a ponerse en 0.
+*/
 float temperatures[ARRAY_SIZE] = {0.0};
 
+/**
+    index es una variable de tipo int utilizado para recorrer los arrays de medición.
+    Una vez realizada la transmisión, vuelve a ponerse en 0.
+*/
 int index = 0;
 
 /**
-    currentStates contiene 6 strings que representan el valor actual 
-    de la medición de cada uno de los sensores. Estos tienen un orden arbitrario:
-    { Corriente, Tensión, Fuego, Temperatura, Lluvia, Combustible }
-    Estos valores se refrescan cuando sea requerido, y retienen el valor anterior
-    hasta entonces.
-*/
-
-// String currentStates[SENSORS_QTY] = {"", ""};
-
-/**
-    refreshRequested contiene 6 variables booleanas que representan la necesidad 
-    de refrescar los valores de currentStates. Estos tienen un orden arbitrario:
-    { Corriente, Tensión, Fuego, Temperatura, Lluvia, Combustible }
+    refreshRequested contiene SENSORS_QTY variables booleanas que representan la necesidad
+    de refrescar los valores de los arrays de medición. Estos tienen un orden arbitrario:
+    { Tensión, Temperatura }
     Una vez refrescado, cada uno de estos booleanos vuelve a ponerse en false.
 */
 bool refreshRequested[SENSORS_QTY] = {false, false};
 
 /**
-    initiateAlert es un flag que, de ser evaluado a true, dispara una
-    alerta con valores preconfigurados. Al finalizar este evento, se
-    pone en false automáticamente.
-*/ 
-bool initiateAlert = true;  
-
-/**
-    LoRaPayload es una string que contiene el mensaje preformateado especialmente
+    outcomingPayload es una string que contiene el mensaje LoRa de salida preformateado especialmente
     para que, posteriormente, el concentrador LoRa pueda decodificarla.
 */
-String LoRaPayload;
+String outcomingPayload;
 
+/**
+    incomingFull es una string que contiene el mensaje LoRa de entrada, incluyendo
+    el identificador de nodo.
+*/
 String incomingFull;
 
-String receiverStr;
-
-String incomingPayload;
-
+/**
+    greaterThanStr (>) es el delimitador entre el identificador de nodo y la carga útil
+    del mensaje de entrada LoRa. Se carga en memoria una única vez en una String constante
+    para evitar problemas de memoria heap.
+*/
 const String greaterThanStr = ">";
 
-// Bibliotecas que agregan funcionalidades.
+/**
+    receiverStr es una string que contiene el identificador de nodo del mensaje LoRa
+    de entrada.
+*/
+String receiverStr;
+
+/**
+    knownCommands es un array de Strings que contiene los comandos LoRa que
+    se pueden ejecutar.
+*/
+const String knownCommands[KNOWN_COMMANDS_SIZE] = {
+    "startAlert"
+};
+
+/**
+    incomingPayload es una string que contiene sólo la carga útil del mensaje LoRa de entrada,
+    cuando el identificador de nodo coincide con DEVICE_ID.
+*/
+String incomingPayload;
+
+/// Headers finales (proceden a la declaración de variables).
+
 #include "pinout.h"             // Biblioteca propia.
 #include "timing_helpers.h"     // Biblioteca propia.
 #include "sensors.h"            // Biblioteca propia.
@@ -79,28 +106,23 @@ const String greaterThanStr = ">";
 #include "array_helpers.h"      // Biblioteca propia.
 #include "LoRa_helpers.h"       // Biblioteca propia.
 
+/// Funciones principales.
+
 /**
-    setup() inicializa el puerto serial, setea el pinout e inicializa 
-    los sensores y el SX1278. Esta función se invoca una única vez en el programa.
+    setup() lleva a cabo las siguientes tareas:
+        - setea el pinout,
+        - inicializa el periférico serial,
+        - reserva espacios de memoria para las Strings,
+        - inicializa el módulo LoRa.
+    Si después de realizar estas tareas no se "cuelga", da inicio
+    a una alerta "exitosa".
 */
 void setup() {
     setupPinout();
     #if DEBUG_LEVEL >= 1
         Serial.begin(SERIAL_BPS);
     #endif
-
-    receiverStr.reserve(MAX_SIZE_DEV_ID);
-    incomingPayload.reserve(MAX_SIZE_INCOMING_LORA_COMMAND);
-    incomingFull.reserve(MAX_SIZE_INCOMING_LORA_COMMAND + MAX_SIZE_DEV_ID + 2);
-    
-    if (!LoRaPayload.reserve(MAX_SIZE_OUTCOMING_LORA_REPORT)) {
-        #if DEBUG_LEVEL >= 1
-            Serial.println("Strings out of memory!");
-        #endif
-        blockingAlert(133, 50);
-        while (1);
-    }
-    
+    reserveMemory();
     LoRaInitialize();
     startAlert(133, 3);
 }
@@ -119,16 +141,16 @@ void loop() {
         stopRefreshingAllSensors();
 
         // Compone la carga útil de LoRa.
-        composeLoRaPayload(voltages, temperatures, LoRaPayload);
-        
+        composeLoRaPayload(voltages, temperatures, outcomingPayload);
+
         #if DEBUG_LEVEL >= 1
             Serial.print("Payload LoRa encolado!: ");
-            Serial.println(LoRaPayload);
+            Serial.println(outcomingPayload);
         #endif
 
         // Componer y enviar paquete.
         LoRa.beginPacket();
-        LoRa.print(LoRaPayload);
+        LoRa.print(outcomingPayload);
         LoRa.endPacket();
 
         // Pone al módulo LoRa en modo recepción.
@@ -137,10 +159,16 @@ void loop() {
         // Inicia la alerta preestablecida.
         startAlert(133, 3);
 
+        // Reestablece los arrays de medición.
+        cleanupArray(voltages, ARRAY_SIZE);
+        cleanupArray(temperatures, ARRAY_SIZE);
+
+        // Reestablece el index de los arrays de medición.
         index = 0;
     } else {
         callbackAlert();
-        
+        callbackLoRaCommand();
+
         if(runEvery(sec2ms(TIMEOUT_READ_SENSORS), 2)) {
             // Refresca TODOS los sensores.
             refreshAllSensors();
@@ -148,12 +176,14 @@ void loop() {
         }
 
         if (refreshRequested[0] && !resetAlert && pitidosRestantes == 0) {
-            // #ifndef TENSION_MOCK
-                eMon.calcVI(20, 1000);
-            // #endif
+            // Obtiene un nuevo valor de tensión.
+            #ifndef TENSION_MOCK
+                eMon.calcVI(EMON_CROSSINGS, EMON_TIMEOUT);
+            #endif
             getNewVoltage();
         }
         if (refreshRequested[1] && !resetAlert && pitidosRestantes == 0) {
+            // Obtiene un nuevo valor de temperatura.
             getNewTemperature();
         }
     }

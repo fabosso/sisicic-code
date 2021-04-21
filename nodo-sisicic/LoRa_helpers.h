@@ -10,50 +10,57 @@
     onRecieve() es la función por interrupción que se llama cuando
     existen datos en el buffer LoRa.
 */
-
-
 void onReceive(int packetSize) {
     #if DEBUG_LEVEL >= 2
         Serial.println("Entering recieve mode");
     #endif
-    if (packetSize == 0) {
-        return; // if there's no packet, return
+
+    // Si el tamaño del paquete entrante es nulo,
+    // o si es superior al tamaño reservado para la string incomingFull
+    // salir de la subrutina.
+    if (packetSize == 0 || packetSize > INCOMING_FULL_MAX_SIZE) {
+        return;
     }
 
-    incomingFull = ""; // payload of packet
-
-    while (LoRa.available()) {         // can't use readString() in callback, so
-        incomingFull += (char)LoRa.read(); // add bytes one by one
+    // No se puede utilizar readString() en un callback.
+    // Se añaden los bytes uno por uno.
+    while (LoRa.available()) {
+        incomingFull += (char)LoRa.read();
     }
 
-
+    // Extraer el delimitador ">" para diferenciar el ID del payload.
     int delimiter = incomingFull.indexOf(greaterThanStr);
-    receiverStr = incomingFull.substring(1, delimiter);
 
-    int receiver = receiverStr.toInt();
+    // Obtener el ID de receptor.
+    receiverStr = incomingFull.substring(1, delimiter);
+    int receiverID = receiverStr.toInt();
     #if DEBUG_LEVEL >= 1
         Serial.print("Receiver: ");
-        Serial.println(receiver);
+        Serial.println(receiverID);
     #endif
-    if (receiver == DEVICE_ID) {
-        // incomingPayload.reserve(MAX_SIZE_INCOMING_LORA_COMMAND);
+
+    // Si el ID del receptor coincide con nuestro ID o si es un broadcast:
+    if (receiverID == DEVICE_ID || receiverID == BROADCAST_ID) {
+        // Obtiene el payload entrante.
         incomingPayload = incomingFull.substring(delimiter + 1);
         #if DEBUG_LEVEL >= 1
-            Serial.println("Wait, that's me!");
-            Serial.print("I should do this: ");
-            Serial.println(incomingPayload);
+            Serial.println("ID coincide!");
         #endif
     } else {
         #if DEBUG_LEVEL >= 2
-            Serial.println("Whatever...");
+            Serial.println("Descartado por ID!");
         #endif
     }
+
+    // Limpiar strings.
+    incomingFull = "";
+    receiverStr = "";
 }
 
 /**
-    LoRaInitialize() inicializa el módulo SX1278 con: 
+    LoRaInitialize() inicializa el módulo SX1278 con:
         - la frecuencia y la palabra de sincronización indicados en constants.h
-        - los pines indicados en pinout.h, 
+        - los pines indicados en pinout.h,
     Si por algún motivo fallara, "cuelga" al programa.
 */
 void LoRaInitialize() {
@@ -61,42 +68,63 @@ void LoRaInitialize() {
 
     if (!LoRa.begin(LORA_FREQ)) {
         Serial.println("Starting LoRa failed!");
-        blockingAlert(2000, 10);    
+        blockingAlert(2000, 10);
         while (1);
     }
     LoRa.setSyncWord(LORA_SYNC_WORD);
     LoRa.onReceive(onReceive);
     LoRa.receive();
-    
+
     #if DEBUG_LEVEL >= 1
         Serial.println("LoRa initialized OK.");
     #endif
 }
 
 /**
-    composeLoRaPayload(states) se encarga de crear la string de carga útil de LoRa,
+    reserveMemory() reserva memoria para las Strings.
+    En caso de quedarse sin memoria, alerta por puerto serial
+    e inicia una alerta de falla
+*/
+void reserveMemory() {
+    receiverStr.reserve(DEVICE_ID_MAX_SIZE);
+    incomingPayload.reserve(INCOMING_PAYLOAD_MAX_SIZE);
+    incomingFull.reserve(INCOMING_FULL_MAX_SIZE);
+
+    if (!outcomingPayload.reserve(MAX_SIZE_OUTCOMING_LORA_REPORT)) {
+        #if DEBUG_LEVEL >= 1
+            Serial.println("Strings out of memory!");
+        #endif
+        blockingAlert(133, 50);
+        while (1);
+    }
+}
+
+/**
+    composeLoRaPayload() se encarga de crear la string de carga útil de LoRa,
     a partir de los estados actuales de los sensores.
     Por ejemplo, si:
-        DEVICE_ID = 10009;
-        currentStates = {"7.66", "223.11", "0"; "23.11"; "0"; "128.22"; "150"}
+        DEVICE_ID = 10009
+        volts = {220.00, 230.00}
+        temps = {24.00, 25.00}
     Entonces, esta función devuelve:
-        "<10009>current=7.66&voltage=223.11&flame=0&temperature=23.11&raindrops=0&gas=128.22&capacity=150"
-    @param measures[] Vector de Strings con los valores actuales de los sensores.
-    @return La carga útil LoRa.
+        "<10009>voltage=225.00&temperature=24.50"
+    @param volts Array con los valores de medición de tensión.
+    @param temps Array con los valores de medición de temperatura.
+    @param &rtn Dirección de memoria de la String a componer.
 */
 void composeLoRaPayload(float volts[], float temps[], String& rtn) {
     // Payload LoRA = vector de bytes transmitidos en forma FIFO.
-    // | Dev ID |  Tensión | Temperatura |
+    // | Dev ID | Tensión | Temperatura |
     rtn += "<";
     rtn += DEVICE_ID;
     rtn += ">";
 
     rtn += "voltage";
     rtn += "=";
-    rtn += getAverage(volts);
+    rtn += getAverage(volts, ARRAY_SIZE);
 
     rtn += "&";
     rtn += "temperature";
     rtn += "=";
-    rtn += getAverage(temps);
+    rtn += getAverage(temps, ARRAY_SIZE);
 }

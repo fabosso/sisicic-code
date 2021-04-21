@@ -34,8 +34,8 @@ void stopRefreshingAllSensors() {
 }
 
 /**
-    refreshVoltage() se encarga de refrescar el estado de la medición de tensión.
-    Luego de hacerlo, baja el flag correspondiente en refreshRequested
+    getNewVoltage() se encarga de agregar un nuevo valor en el array de medición de tensión.
+    Luego de hacerlo, baja el flag correspondiente en refreshRequested.
 */
 
 void getNewVoltage() {
@@ -46,7 +46,7 @@ void getNewVoltage() {
             voltages[index] = newVoltage
         #else
             newVoltage = TENSION_MOCK + random(300) / 100.0;
-            voltages[index] = newVoltage; 
+            voltages[index] = newVoltage;
         #endif
         #if DEBUG_LEVEL >= 3
             Serial.print("Nueva tension: ");
@@ -57,7 +57,7 @@ void getNewVoltage() {
 }
 
 /**
-    refreshTemperature() se encarga de refrescar el estado de la medición de temperatura.
+    getNewTemperature() se encarga de agregar un nuevo valor en el array de medición de temperatura.
     Luego de hacerlo, baja el flag correspondiente en refreshRequested.
 */
 void getNewTemperature() {

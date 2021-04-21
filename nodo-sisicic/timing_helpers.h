@@ -1,5 +1,5 @@
 /**
-      Header que contiene funcionalidades relacionadas al timing.
+    Header que contiene funcionalidades relacionadas al timing.
     @file timing_helpers.h
     @author Franco Abosso
     @author Julio Donadello

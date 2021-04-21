@@ -1,9 +1,5 @@
 /**
     Header que indica el pinout de los nodos LoRa.
-    También define el modo de trabajo (active low / active high) de:
-        - buzzer
-        - sensor fuego
-        - sensor lluvia
     @file pinout.h
     @author Franco Abosso
     @author Julio Donadello
@@ -29,17 +25,17 @@
 #define BUZZER_INACTIVO HIGH
 
 // Instanciamiento de objetos relacionados al pinout.
-EnergyMonitor eMon;                   
+EnergyMonitor eMon;
 OneWire oneWireObjeto(TEMPERATURA_PIN);
 DallasTemperature sensorDS18B20(&oneWireObjeto);
 /**
     setupPinout() determina las I/Os digitales, inicializa al DS18B20
-    y calibra los sensores de tensión y corriente.
+    y calibra el módulo sensor de tensión.
 */
 void setupPinout() {
     pinMode(BUZZER_PIN, OUTPUT);
     pinMode(TEMPERATURA_PIN, INPUT);
     pinMode(RELE_PIN, OUTPUT);
-    sensorDS18B20.begin(); 
+    sensorDS18B20.begin();
     eMon.voltage(TENSION_PIN, 226.0, 1.7);
 }
