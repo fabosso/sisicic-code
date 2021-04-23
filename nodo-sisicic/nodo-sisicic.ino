@@ -59,10 +59,10 @@ int index = 0;
 bool refreshRequested[SENSORS_QTY] = {false, false};
 
 /**
-    outcomingPayload es una string que contiene el mensaje LoRa de salida preformateado especialmente
+    outcomingFull es una string que contiene el mensaje LoRa de salida preformateado especialmente
     para que, posteriormente, el concentrador LoRa pueda decodificarla.
 */
-String outcomingPayload;
+String outcomingFull;
 
 /**
     incomingFull es una string que contiene el mensaje LoRa de entrada, incluyendo
@@ -78,24 +78,24 @@ String incomingFull;
 const String greaterThanStr = ">";
 
 /**
-    receiverStr es una string que contiene el identificador de nodo del mensaje LoRa
-    de entrada.
+    receiverStr es una string que sólo contiene el identificador de nodo 
+    recibido en un mensaje LoRa entrante.
 */
 String receiverStr;
+
+/**
+    incomingPayload es una string que contiene sólo la carga útil del mensaje LoRa de entrada,
+    utilizada sólo cuando el identificador de nodo coincide con DEVICE_ID o con BROADCAST_ID.
+*/
+String incomingPayload;
 
 /**
     knownCommands es un array de Strings que contiene los comandos LoRa que
     se pueden ejecutar.
 */
 const String knownCommands[KNOWN_COMMANDS_SIZE] = {
-    "startAlert"
+    "startAlert"    // inicia una alerta con el siguiente llamado a función: startAlert(750, 10);
 };
-
-/**
-    incomingPayload es una string que contiene sólo la carga útil del mensaje LoRa de entrada,
-    cuando el identificador de nodo coincide con DEVICE_ID.
-*/
-String incomingPayload;
 
 /// Headers finales (proceden a la declaración de variables).
 
@@ -141,16 +141,16 @@ void loop() {
         stopRefreshingAllSensors();
 
         // Compone la carga útil de LoRa.
-        composeLoRaPayload(voltages, temperatures, outcomingPayload);
+        composeLoRaPayload(voltages, temperatures, outcomingFull);
 
         #if DEBUG_LEVEL >= 1
             Serial.print("Payload LoRa encolado!: ");
-            Serial.println(outcomingPayload);
+            Serial.println(outcomingFull);
         #endif
 
         // Componer y enviar paquete.
         LoRa.beginPacket();
-        LoRa.print(outcomingPayload);
+        LoRa.print(outcomingFull);
         LoRa.endPacket();
 
         // Pone al módulo LoRa en modo recepción.
@@ -165,26 +165,26 @@ void loop() {
 
         // Reestablece el index de los arrays de medición.
         index = 0;
-    } else {
-        callbackAlert();
-        callbackLoRaCommand();
+    }
 
-        if(runEvery(sec2ms(TIMEOUT_READ_SENSORS), 2)) {
-            // Refresca TODOS los sensores.
-            refreshAllSensors();
-            index++;
-        }
+    callbackAlert();
+    callbackLoRaCommand();
 
-        if (refreshRequested[0] && !resetAlert && pitidosRestantes == 0) {
-            // Obtiene un nuevo valor de tensión.
-            #ifndef TENSION_MOCK
-                eMon.calcVI(EMON_CROSSINGS, EMON_TIMEOUT);
-            #endif
-            getNewVoltage();
-        }
-        if (refreshRequested[1] && !resetAlert && pitidosRestantes == 0) {
-            // Obtiene un nuevo valor de temperatura.
-            getNewTemperature();
-        }
+    if(runEvery(sec2ms(TIMEOUT_READ_SENSORS), 2)) {
+        // Refresca TODOS los sensores.
+        refreshAllSensors();
+        index++;
+    }
+
+    if (refreshRequested[0] && !resetAlert && pitidosRestantes == 0) {
+        // Obtiene un nuevo valor de tensión.
+        #ifndef TENSION_MOCK
+            eMon.calcVI(EMON_CROSSINGS, EMON_TIMEOUT);
+        #endif
+        getNewVoltage();
+    }
+    if (refreshRequested[1] && !resetAlert && pitidosRestantes == 0) {
+        // Obtiene un nuevo valor de temperatura.
+        getNewTemperature();
     }
 }

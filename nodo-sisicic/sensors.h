@@ -43,7 +43,7 @@ void getNewVoltage() {
     if (index < ARRAY_SIZE) {
         #ifndef TENSION_MOCK
             newVoltage = eMon.Vrms;
-            voltages[index] = newVoltage
+            voltages[index] = newVoltage;
         #else
             newVoltage = TENSION_MOCK + random(300) / 100.0;
             voltages[index] = newVoltage;
@@ -77,4 +77,3 @@ void getNewTemperature() {
     #endif
     refreshRequested[1] = false;
 }
-

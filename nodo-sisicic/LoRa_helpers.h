@@ -90,7 +90,7 @@ void reserveMemory() {
     incomingPayload.reserve(INCOMING_PAYLOAD_MAX_SIZE);
     incomingFull.reserve(INCOMING_FULL_MAX_SIZE);
 
-    if (!outcomingPayload.reserve(MAX_SIZE_OUTCOMING_LORA_REPORT)) {
+    if (!outcomingFull.reserve(MAX_SIZE_OUTCOMING_LORA_REPORT)) {
         #if DEBUG_LEVEL >= 1
             Serial.println("Strings out of memory!");
         #endif
