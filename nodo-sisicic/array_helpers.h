@@ -1,4 +1,12 @@
 /**
+    Header que contiene funciones relevantes para el accionar de los arrays.
+    @file constants.h
+    @author Franco Abosso
+    @author Julio Donadello
+    @version 1.0 29/03/2021
+*/
+
+/**
     round2decimals() redondea variables de tipo float a 2 decimales.
     Por ejemplo:
         float var = 213.27123;
