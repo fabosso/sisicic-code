@@ -115,7 +115,7 @@ void reserveMemory() {
 void composeLoRaPayload(float volts[], float temps[], String& rtn) {
     // Payload LoRA = vector de bytes transmitidos en forma FIFO.
     // | Dev ID | Tensión | Temperatura |
-    rtn += "<";
+    rtn = "<";
     rtn += DEVICE_ID;
     rtn += ">";
 
