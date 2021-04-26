@@ -106,7 +106,7 @@ void reserveMemory() {
         DEVICE_ID = 10009
         volts = {220.00, 230.00}
         temps = {24.00, 25.00}
-    Entonces, esta función devuelve:
+    Entonces, esta función sobreescribe la String a retornar con:
         "<10009>voltage=225.00&temperature=24.50"
     @param volts Array con los valores de medición de tensión.
     @param temps Array con los valores de medición de temperatura.
