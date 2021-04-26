@@ -6,7 +6,6 @@
     @version 1.0 29/03/2021
 */
 
-
 /**
     refreshAllSensors() se encarga de pedir el refresco de todos los sensores,
     poniendo cada uno de los flags del vector refreshRequested en true.
@@ -76,4 +75,29 @@ void getNewTemperature() {
         Serial.println(newTemperature);
     #endif
     refreshRequested[1] = false;
+}
+
+/**
+    callbackPresencia() se encarga de pollear el estado del pin del sensor de presencia,
+    en base al estado del flag presenciaLast.
+    Cuando detecta un cambio de estado del sensor de presencia, pone en true el flag presenciaChanged.
+*/
+void callbackPresencia() {
+    #ifdef PRESENCIA_PIN
+        if (presenciaLast == false) {
+            if (digitalRead(PRESENCIA_PIN) == PRESENCIA_ACTIVO) {
+                presenciaLast = true;
+                presenciaChanged = true;
+            }
+        } else {
+            if (digitalRead(PRESENCIA_PIN) == PRESENCIA_INACTIVO) {
+                presenciaLast = false;
+                presenciaChanged = true;
+            }
+        }
+    #else
+        if (runEvery(sec2ms(10), 4)) {
+            presenciaChanged = true;
+        }
+    #endif
 }

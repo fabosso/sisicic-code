@@ -55,7 +55,19 @@ int index = 0;
     Si dayTime es false, significa que hay luz ambiental exterior, por lo que no
     es necesario apagar la luz cuando se detecte la apertura de la puerta.
 */
-bool dayTime = false;
+bool dayTime = true;
+
+/**
+    presenciaChanged es un flag que se pone en true o false dependendiendo
+    del cambio de estado del sensor de presencia.
+*/
+bool presenciaChanged = false;
+
+/**
+    presenciaLast es un flag que almacena el último cambio de estado del sensor
+    de preresencia
+*/
+bool presenciaLast = false;
 
 /**
     refreshRequested contiene SENSORS_QTY variables booleanas que representan la necesidad
@@ -109,6 +121,7 @@ const String knownCommands[KNOWN_COMMANDS_SIZE] = {
 /// Headers finales (proceden a la declaración de variables).
 
 #include "pinout.h"             // Biblioteca propia.
+#include "alerts.h"             // Biblioteca propia.
 #include "timing_helpers.h"     // Biblioteca propia.
 #include "sensors.h"            // Biblioteca propia.
 #include "actuators.h"          // Biblioteca propia.
@@ -178,7 +191,9 @@ void loop() {
 
     callbackAlert();
     callbackLoRaCommand();
+    callbackPresencia();
     callbackLights();
+
 
     if(runEvery(sec2ms(TIMEOUT_READ_SENSORS), 2)) {
         // Refresca TODOS los sensores.

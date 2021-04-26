@@ -6,45 +6,6 @@
     @version 1.0 29/03/2021
 */
 
-int totalPitidos = 3;           // Total de pitidos por alarma.
-int tiempoPitido = 133;         // Tiempo de cada pitido del buzzer [ms].
-bool resetAlert = false;        // Flag responsable de resetear pitidosRestantes.
-int pitidosRestantes = 0;       // Variable que contiene los pitidos restantes.
-
-/**
-    blockingAlert() se encarga de realizar una subrutina bloqueante de alerta,
-    en base a una cantidad de tiempo y de pitidos dados como parámetros.
-    Esta función se utiliza cuando el programa presenta algún tipo de fallo.
-    Realiza una serie de 3 pitidos en donde cada pitido (y no-pitido) del buzzer dura 133 ms.
-    @param tiempo Tiempo que dura cada pitido.
-    @param pitidos Cantidad de pitidos.
-*/
-void blockingAlert(int tiempo, int pitidos) {
-    for (int i = 0; i < pitidos * 2 + 1; i++) {
-        digitalWrite(BUZZER_PIN, !digitalRead(BUZZER_PIN));
-        delay(tiempo);
-    }
-}
-
-/**
-    startAlert() se encarga de inicializar la subrutina no bloqueante
-    de alerta, en base a una cantidad de tiempo y de pitidos dados como parámetros.
-    Por ejemplo:
-        startAlert(133, 3);
-    Realiza una serie de 3 pitidos en donde cada pitido (y no-pitido) del buzzer dura 133 ms.
-    @param tiempo Tiempo que dura cada pitido.
-    @param pitidos Cantidad de pitidos.
-*/
-void startAlert(int tiempo, int pitidos) {
-    if (resetAlert && pitidosRestantes == 0) {
-        return;
-    } else {
-        tiempoPitido = tiempo;
-        totalPitidos = pitidos;
-        resetAlert = true;
-    }
-}
-
 /**
     callbackAlert() se encarga de consultar el estado de la variable resetAlert:
     si existe un pedido de iniciar la alerta, actualiza pitidosRestantes
@@ -97,30 +58,18 @@ void callbackLoRaCommand() {
     }
 }
 
-bool presenciaTest = false;
+/**
+    callbackLights() se encarga de chequear el estado de dos flags: dayTime y presenciaChanged.
+    Si es de día, saltea el resto de la función (porque el relé estará siempre en modo activo).
+    Si hubo un cambio en el sensor de presencia, togglea el estado del relé y baja el flag.
+*/
 void callbackLights() {
     if (dayTime) {
         return;
     }
-    #ifdef PRESENCIA_PIN
-        if (digitalRead(PRESENCIA_PIN) == PRESENCIA_ACTIVO) {
-            // hay movimiento de puerta y es de día! tenemos que apagar la luz:
-            digitalWrite(RELE_PIN, RELE_INACTIVO);
-        } else {
-            // dejamos el relé activo (si el interruptor de luz está cerrado, va a haber luz).
-            digitalWrite(RELE_PIN, RELE_ACTIVO);
-        }
-    #else
-        if (runEvery(sec2ms(10), 4)) {
-            presenciaTest = !presenciaTest;
-        }
 
-        if (presenciaTest) {
-            // hay movimiento de puerta y es de día! tenemos que apagar la luz:
-            digitalWrite(RELE_PIN, RELE_INACTIVO);
-        } else {
-            // dejamos el relé activo (si el interruptor de luz está cerrado, va a haber luz).
-            digitalWrite(RELE_PIN, RELE_ACTIVO);
-        }
-    #endif
+    if (presenciaChanged) {
+        digitalWrite(RELE_PIN, !digitalRead(RELE_PIN));
+        presenciaChanged = false;
+    }
 }

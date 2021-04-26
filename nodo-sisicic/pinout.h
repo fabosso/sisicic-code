@@ -61,10 +61,10 @@ RS232 (2) - | [ ]A7              INT0/D2[ ] | - Reservado para RA-02.
 
 
 // Definición de modo de trabajo.
-#define BUZZER_ACTIVO LOW       // prueba solamente
-#define BUZZER_INACTIVO HIGH    // prueba solamente
-#define RELE_ACTIVO LOW         // definido según jumper de módulo
-#define RELE_INACTIVO HIGH      // definido según jumper de módulo
+#define BUZZER_ACTIVO LOW       // (no final)
+#define BUZZER_INACTIVO HIGH    // (no final)
+#define RELE_ACTIVO HIGH        // definido según jumper de módulo
+#define RELE_INACTIVO LOW       // definido según jumper de módulo
 #define PRESENCIA_ACTIVO HIGH
 #define PRESENCIA_ACTIVO LOW
 
@@ -81,6 +81,10 @@ void setupPinout() {
     pinMode(TEMPERATURA_PIN, INPUT);
     pinMode(RELE_PIN, OUTPUT);
     // pinMode(PRESENCIA_PIN, INPUT);
+
+    digitalWrite(BUZZER_PIN, BUZZER_INACTIVO);
+    digitalWrite(RELE_PIN, RELE_ACTIVO);
+
     sensorDS18B20.begin();
     eMon.voltage(TENSION_PIN, 226.0, 1.7);
 }
