@@ -76,18 +76,51 @@ void callbackAlert() {
 void callbackLoRaCommand() {
     if (incomingPayload == "") {
         return;
-    } else if (incomingPayload == knownCommands[0]) { // knownCommands[0]: startAlert
-        #if DEBUG_LEVEL
-            Serial.print("Haciendo esto >> ");
-            Serial.println(incomingPayload);
-        #endif
-        startAlert(750, 10);
-        incomingPayload = "";
     } else {
         #if DEBUG_LEVEL >= 1
+            Serial.print("Quiero hacer esto >> ");
             Serial.println(incomingPayload);
-            Serial.println("Descartado por payload incorrecto!");
         #endif
+        if (incomingPayload == knownCommands[0]) {          // knownCommands[0]: startAlert
+            startAlert(750, 10);
+        } else if (incomingPayload == knownCommands[1]) {   // knownCommands[1]: dayttime
+            dayTime = true;
+            digitalWrite(RELE_PIN, RELE_ACTIVO);
+        } else if (incomingPayload == knownCommands[2]) {   // knownCommands[2]: nighttime
+            dayTime = false;
+        } else {
+            #if DEBUG_LEVEL >= 1
+                Serial.println("Descartado por payload incorrecto!");
+            #endif
+        }
         incomingPayload = "";
     }
+}
+
+bool presenciaTest = false;
+void callbackLights() {
+    if (dayTime) {
+        return;
+    }
+    #ifdef PRESENCIA_PIN
+        if (digitalRead(PRESENCIA_PIN) == PRESENCIA_ACTIVO) {
+            // hay movimiento de puerta y es de día! tenemos que apagar la luz:
+            digitalWrite(RELE_PIN, RELE_INACTIVO);
+        } else {
+            // dejamos el relé activo (si el interruptor de luz está cerrado, va a haber luz).
+            digitalWrite(RELE_PIN, RELE_ACTIVO);
+        }
+    #else
+        if (runEvery(sec2ms(10), 4)) {
+            presenciaTest = !presenciaTest;
+        }
+
+        if (presenciaTest) {
+            // hay movimiento de puerta y es de día! tenemos que apagar la luz:
+            digitalWrite(RELE_PIN, RELE_INACTIVO);
+        } else {
+            // dejamos el relé activo (si el interruptor de luz está cerrado, va a haber luz).
+            digitalWrite(RELE_PIN, RELE_ACTIVO);
+        }
+    #endif
 }

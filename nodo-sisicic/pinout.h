@@ -57,6 +57,7 @@ RS232 (2) - | [ ]A7              INT0/D2[ ] | - Reservado para RA-02.
 #define TEMPERATURA_PIN 8
 // #define RELE_PIN 7
 #define RELE_PIN 9              // prueba solamente
+// #define PRESENCIA_PIN 5
 
 
 // Definición de modo de trabajo.
@@ -64,6 +65,8 @@ RS232 (2) - | [ ]A7              INT0/D2[ ] | - Reservado para RA-02.
 #define BUZZER_INACTIVO HIGH    // prueba solamente
 #define RELE_ACTIVO LOW         // definido según jumper de módulo
 #define RELE_INACTIVO HIGH      // definido según jumper de módulo
+#define PRESENCIA_ACTIVO HIGH
+#define PRESENCIA_ACTIVO LOW
 
 // Instanciamiento de objetos relacionados al pinout.
 EnergyMonitor eMon;
@@ -77,6 +80,7 @@ void setupPinout() {
     pinMode(BUZZER_PIN, OUTPUT);
     pinMode(TEMPERATURA_PIN, INPUT);
     pinMode(RELE_PIN, OUTPUT);
+    // pinMode(PRESENCIA_PIN, INPUT);
     sensorDS18B20.begin();
     eMon.voltage(TENSION_PIN, 226.0, 1.7);
 }

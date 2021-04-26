@@ -31,11 +31,23 @@
 boolean runEvery(unsigned long interval, int slot) {
     static unsigned long previousMillis[TIMING_SLOTS] = {0};
     unsigned long currentMillis = millis();
-    if (currentMillis - previousMillis[slot-1] >= interval) {
-        previousMillis[slot-1] = currentMillis;
-        return true;
+
+    if (slot > TIMING_SLOTS + 1) {
+        if (currentMillis - previousMillis[slot-1] >= interval) {
+            previousMillis[slot-1] = currentMillis;
+            return true;
+        } else {
+            return false;
+        }
     } else {
-        return false;
+        startAlert(3000, 1);
+        #if DEBUG_LEVEL >= 1
+            Serial.println("TIMING_SLOTS mal configurado!");
+            Serial.print("Slot ingresado: ");
+            Serial.println(slot);
+            Serial.print("Slots reservados: ");
+            Serial.println(TIMING_SLOTS + 1);
+        #endif
     }
 }
 

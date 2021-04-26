@@ -51,6 +51,13 @@ float temperatures[ARRAY_SIZE] = {0.0};
 int index = 0;
 
 /**
+    dayTime es un flag que se pone en true o en false remotamente.
+    Si dayTime es false, significa que hay luz ambiental exterior, por lo que no
+    es necesario apagar la luz cuando se detecte la apertura de la puerta.
+*/
+bool dayTime = false;
+
+/**
     refreshRequested contiene SENSORS_QTY variables booleanas que representan la necesidad
     de refrescar los valores de los arrays de medición. Estos tienen un orden arbitrario:
     { Tensión, Temperatura }
@@ -94,7 +101,9 @@ String incomingPayload;
     se pueden ejecutar.
 */
 const String knownCommands[KNOWN_COMMANDS_SIZE] = {
-    "startAlert"    // inicia una alerta con el siguiente llamado a función: startAlert(750, 10);
+    "startAlert",   // inicia una alerta con el siguiente llamado a función: startAlert(750, 10);
+    "daytime",      // alerta a la cabina que es de día.
+    "nighttime"    // alerta a la cabina que es de noche.
 };
 
 /// Headers finales (proceden a la declaración de variables).
@@ -169,6 +178,7 @@ void loop() {
 
     callbackAlert();
     callbackLoRaCommand();
+    callbackLights();
 
     if(runEvery(sec2ms(TIMEOUT_READ_SENSORS), 2)) {
         // Refresca TODOS los sensores.
